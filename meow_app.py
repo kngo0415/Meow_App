@@ -67,11 +67,7 @@ if st.session_state.authenticated:
 
     st.subheader("Meow Configurator", divider="red", anchor=False)
     try:
-        api_key = st.secrets["GROQ_API_KEY"]
-    
-        # List available secret keys
-        st.write("Available secret keys:", list(st.secrets.keys()))
-
+        api_key = st.secrets["GROQ_API_KEY"]   
         client = Groq(api_key=api_key)
     except KeyError:
         st.error("GROQ_API_KEY is not found in secrets.")
