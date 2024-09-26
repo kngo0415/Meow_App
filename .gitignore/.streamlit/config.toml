@@ -1,6 +1,0 @@
-[server]
-allowRunOnSave = true
-
-[deprecation]
-showfileUploaderEncoding = false
-showPyplotGlobalUse = false
