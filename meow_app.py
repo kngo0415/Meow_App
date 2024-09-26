@@ -68,9 +68,9 @@ if st.session_state.authenticated:
 
     st.subheader("Meow Configurator", divider="red", anchor=False)
 
-    client = Groq(
-        api_key=st.secrets["GROQ_API_KEY"],
-    )
+    api_key = st.secrets["GROQ_API_KEY"]
+
+    client = Groq(api_key=api_key)
 
     # Initialize chat history and selected model
     if "messages" not in st.session_state:
