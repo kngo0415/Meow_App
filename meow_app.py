@@ -49,7 +49,7 @@ if st.session_state.authenticated:
     col1, col2 = st.columns([8, 2])
 
     with col1:
-        st.subheader("Welcome to the Private Meow Chatbot!")
+        st.subheader("Welcome Kevin's Meow Chatbot!")
 
     with col2:
         if st.button("Logout"):
