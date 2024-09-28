@@ -3,8 +3,7 @@ from typing import Generator
 from groq import Groq
 import re
 
-st.set_page_config(page_icon="🦈", layout="wide", 
-                page_title="Groq rok rok")
+st.set_page_config(page_icon="😻", layout="wide", page_title="CatGPT")
 
 # Define valid usernames and passwords
 VALID_CREDENTIALS = {
@@ -21,7 +20,7 @@ def icon(emoji: str):
 
 # Function to check if the entered credentials are valid
 def check_credentials(username, password):
-    if username in VALID_CREDENTIALS["username"] and password == VALID_CREDENTIALS["password"]:
+    if username == VALID_CREDENTIALS["username"] and password == VALID_CREDENTIALS["password"]:
         return True
     return False
 
@@ -57,7 +56,7 @@ if st.session_state.authenticated:
             st.session_state.authenticated = False  # Log the user out by clearing session state
             st.info("You have been logged out.")
 
-    st.divider()
+    st.markdown("---")
 
     def icon(emoji: str):
         """Shows an emoji as a Notion-style page icon."""
