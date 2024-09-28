@@ -25,8 +25,8 @@ def check_credentials(username, password):
         return username in VALID_CREDENTIALS and VALID_CREDENTIALS[username] == password
     else:
         try:
-            cloud_username = st.secrets["credentials"]["username"]
-            cloud_password = st.secrets["credentials"]["password"]
+            cloud_username = st.secrets["username"]
+            cloud_password = st.secrets["password"]
             return username == cloud_username and password == cloud_password
         except KeyError:
             st.error("Missing username or password in secrets.")
