@@ -189,7 +189,7 @@ def main_page():
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 def main():
-    if not TESTING_MODE and ("credentials" not in st.secrets or "GROQ_API_KEY" not in st.secrets):
+    if not TESTING_MODE and ("username" not in st.secrets or "password" not in st.secrets or "GROQ_API_KEY" not in st.secrets):
         st.error("Credentials or API key missing from secrets.")
         st.stop()
     
