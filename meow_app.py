@@ -138,8 +138,11 @@ def main_page():
         with st.chat_message("user", avatar='😸'):
             st.markdown(prompt)
 
-        # Check if "woof" is in the user prompt
-        if "woof" in prompt.lower():
+        # Retrieve the safeword from secrets
+        safeword = st.secrets["safeword"].lower()
+
+        # Check if safeword is in the user prompt
+        if safeword in prompt.lower():
             st.session_state.normal_response_mode = True
             full_response = "Ah, you got me! How can I help you?"
         else:
@@ -189,7 +192,8 @@ def main_page():
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 def main():
-    if not TESTING_MODE and ("username" not in st.secrets or "password" not in st.secrets or "GROQ_API_KEY" not in st.secrets):
+    required_secrets = ["username", "password", "GROQ_API_KEY", "safeword"]
+    if not TESTING_MODE and not all(key in st.secrets for key in required_secrets):
         st.error("Credentials or API key missing from secrets.")
         st.stop()
     
