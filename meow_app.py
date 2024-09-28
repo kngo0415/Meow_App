@@ -8,7 +8,8 @@ st.set_page_config(page_icon="🦈", layout="wide",
 
 # Define valid usernames and passwords
 VALID_CREDENTIALS = {
-    "k_test": "MissMonday"
+    "username": st.secrets["credentials"]["username"],
+    "password": st.secrets["credentials"]["password"]
 }
 
 def icon(emoji: str):
@@ -20,7 +21,7 @@ def icon(emoji: str):
 
 # Function to check if the entered credentials are valid
 def check_credentials(username, password):
-    if username in VALID_CREDENTIALS and VALID_CREDENTIALS[username] == password:
+    if username in VALID_CREDENTIALS["username"] and password == VALID_CREDENTIALS["password"]:
         return True
     return False
 
