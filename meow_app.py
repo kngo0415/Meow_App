@@ -12,7 +12,7 @@ def icon(emoji: str):
         unsafe_allow_html=True,
     )
 
-TESTING_MODE = True
+TESTING_MODE = False
 
 VALID_CREDENTIALS = {
     "k": "123"
