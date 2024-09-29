@@ -2,8 +2,6 @@ import streamlit as st
 from typing import Generator
 from groq import Groq
 import re
-import os
-import toml
 
 st.set_page_config(page_icon="😻", layout="wide", page_title="CatGPT")
 
@@ -14,7 +12,7 @@ def icon(emoji: str):
         unsafe_allow_html=True,
     )
 
-TESTING_MODE = False
+TESTING_MODE = True
 
 VALID_CREDENTIALS = {
     "k": "123"
@@ -22,7 +20,7 @@ VALID_CREDENTIALS = {
 
 def check_credentials(username, password):
     if TESTING_MODE:
-        return username in VALID_CREDENTIALS and VALID_CREDENTIALS[username] == password
+        return True
     else:
         try:
             cloud_username = st.secrets["username"]
@@ -35,27 +33,51 @@ def check_credentials(username, password):
 def get_groq_client():
     try:
         if TESTING_MODE:
-            return Groq(api_key="meow meow meow meow meow meow meow")
+            return Groq(api_key="meow meow") # Insert API here for testing.
         else:
             return Groq(api_key=st.secrets["GROQ_API_KEY"])
     except KeyError:
         st.error("GROQ_API_KEY is not found in secrets.")
         st.stop()  # Stop execution if API key is missing
 
+# Define AI models at the global scope:
+models = {
+    # Groq models
+    "gemma-7b-it": {"name": "Gemma-7b-it", "tokens": 8192, "developer": "Google", "provider": "groq"},
+    "llama2-70b-4096": {"name": "LLaMA2-70b-chat", "tokens": 4096, "developer": "Meta", "provider": "groq"},
+    "llama3-70b-8192": {"name": "LLaMA3-70b-8192", "tokens": 8192, "developer": "Meta", "provider": "groq"},
+    "llama3-8b-8192": {"name": "LLaMA3-8b-8192", "tokens": 8192, "developer": "Meta", "provider": "groq"},
+    "mixtral-8x7b-32768": {"name": "Mixtral-8x7b-Instruct-v0.1", "tokens": 32768, "developer": "Mistral", "provider": "groq"},
+}
+
 def login_page():
-    icon("🐈")
-    st.title("Login to CatGPT")
+    # icon("🐈")
+    st.title("Login to CatGPT 🐈🐈🐈🐈")
 
     username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+
+    if not TESTING_MODE:
+        password = st.text_input("Password", type="password")
+    else:
+        password = "ignore"
 
     if st.button("Login"):
-        if check_credentials(username, password):
+        if TESTING_MODE or check_credentials(username, password):
             st.session_state['logged_in'] = True
             st.success("Logged in successfully!")
             st.rerun()
         else:
             st.error("Invalid username or password")
+
+    # Preview
+    #st.markdown("Listen to GoogleLM podCat on CatGPT")
+    # Embed audio (e.g., preview.mp3 in your project directory)
+    st.write("Curious about what GoogleLM podCat thinks about CatGPT right meow?. Click the play button to listen to a brief description.")
+    audio_file = open('PodCat.mp3', 'rb')
+    audio_bytes = audio_file.read()
+    st.audio(audio_bytes, format='audio/mp3')
+
+    st.image('CatImage.png', caption='CatGPT on PodCat', use_column_width=True)  # Local image in project directory
 
 def main_page():
     icon("🐈")
@@ -87,21 +109,11 @@ def main_page():
     if "selected_model" not in st.session_state:
         st.session_state.selected_model = None
 
-    # Define AI models:
-    models = {
-        "gemma-7b-it": {"name": "Gemma-7b-it", "tokens": 8192, "developer": "Google"},
-        "llama2-70b-4096": {"name": "LLaMA2-70b-chat", "tokens": 4096, "developer": "Meta"},
-        "llama3-70b-8192": {"name": "LLaMA3-70b-8192", "tokens": 8192, "developer": "Meta"},
-        "llama3-8b-8192": {"name": "LLaMA3-8b-8192", "tokens": 8192, "developer": "Meta"},
-        "mixtral-8x7b-32768": {"name": "Mixtral-8x7b-Instruct-v0.1", "tokens": 32768, "developer": "Mistral"},
-    }
-
-    # selected_model = "mixtral-8x7b-32768"
-
     model_option = st.selectbox(
         "Choose a model:",
         options=list(models.keys()),
-        format_func=lambda x: models[x]["name"],
+        #format_func=lambda x: models[x]["name"],
+        format_func=lambda x: f"{models[x]['name']} ({models[x]['provider']})",
         index=4  # Default to mixtral
     )
 
@@ -138,8 +150,10 @@ def main_page():
         with st.chat_message("user", avatar='😸'):
             st.markdown(prompt)
 
-        # Retrieve the safeword from secrets
-        safeword = st.secrets["safeword"].lower()
+        if TESTING_MODE:
+            safeword = "letmein"  # Replace with a placeholder or test value
+        else:
+            safeword = st.secrets["safeword"].lower()
 
         # Check if safeword is in the user prompt
         if safeword in prompt.lower():
@@ -148,45 +162,38 @@ def main_page():
         else:
             meow_mode = not st.session_state.normal_response_mode
 
+            provider = models[model_option]["provider"]
+
             # Fetch response from Groq API
             try:
-                chat_completion = client.chat.completions.create(
-                    model=model_option,
-                    messages=[
-                        {
-                            "role": m["role"],
-                            "content": m["content"]
-                        }
-                        for m in st.session_state.messages
-                    ],
-                    max_tokens=max_tokens_range,
-                    stream=True
-                )
-
-                # Generate either a normal response or the meowed response
-                full_response = generate_chat_responses(chat_completion, meow_mode=meow_mode)
-            except Exception as e:
-                # Check if the error is a model-not-found error
-                if 'model_not_found' in str(e):
-                    st.error(f"Model {model_option} not found. Using default model: Mixtral.")
-                    # Fallback to Mixtral if the selected model is unavailable
-                    st.session_state.selected_model = "mixtral-8x7b-32768"
+                if provider == "groq":
+                    client = get_groq_client()
                     chat_completion = client.chat.completions.create(
-                        model=st.session_state.selected_model,
+                        model=model_option,
                         messages=[
-                            {"role": m["role"], "content": m["content"]}
+                            {
+                                "role": m["role"],
+                                "content": m["content"]
+                            }
                             for m in st.session_state.messages
                         ],
-                        max_tokens=models["mixtral-8x7b-32768"]["tokens"],
+                        max_tokens=max_tokens_range,
                         stream=True
                     )
+                    # Generate either a normal response or the meowed response
                     full_response = generate_chat_responses(chat_completion, meow_mode=meow_mode)
+
                 else:
-                    st.error(e, icon="🚨")
+                    st.error("Unknown provider selected.", icon="🚨")
+                    return
+
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}", icon="🚨")
+                return
 
         # Display and append the response
         with st.chat_message("assistant", avatar="🐱"):
-            st.markdown(full_response )
+            st.markdown(full_response)
 
         # Append the full response to session_state.messages
         st.session_state.messages.append({"role": "assistant", "content": full_response})
@@ -196,18 +203,14 @@ def main():
     if not TESTING_MODE and not all(key in st.secrets for key in required_secrets):
         st.error("Credentials or API key missing from secrets.")
         st.stop()
-    
-    if TESTING_MODE:
-        # Bypass login page for testing
-        st.session_state['logged_in'] = True
-        main_page()
+
+    if 'logged_in' not in st.session_state:
+        st.session_state['logged_in'] = False
+
+    if st.session_state['logged_in']:
+        main_page()  # Show the main content page
     else:
-        if 'logged_in' not in st.session_state:
-            st.session_state['logged_in'] = False
-        if st.session_state['logged_in']:
-            main_page()
-        else:
-            login_page()
+        login_page()  # Show the login page
 
 if __name__ == "__main__":
     main()
