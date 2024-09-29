@@ -30,16 +30,6 @@ def check_credentials(username, password):
             st.error("Missing username or password in secrets.")
             return False
 
-def get_groq_client():
-    try:
-        if TESTING_MODE:
-            return Groq(api_key="meow meow") # Insert API here for testing.
-        else:
-            return Groq(api_key=st.secrets["GROQ_API_KEY"])
-    except KeyError:
-        st.error("GROQ_API_KEY is not found in secrets.")
-        st.stop()  # Stop execution if API key is missing
-
 # Define AI models at the global scope:
 models = {
     # Groq models
@@ -54,6 +44,7 @@ def login_page():
     # icon("🐈")
     st.title("Login to CatGPT 🐈🐈🐈🐈")
 
+    # Check if the user is bypassing the login by providing their own API key
     username = st.text_input("Username")
 
     if not TESTING_MODE:
@@ -69,6 +60,16 @@ def login_page():
         else:
             st.error("Invalid username or password")
 
+    api_key = st.text_input("Or enter your Groq API Key", type="password", placeholder="grok_api****")
+        # Automatically check if API key is entered
+    if api_key:
+        client = get_groq_client(api_key)
+        if client:
+            st.session_state['logged_in'] = True
+            st.session_state['groq_api_key'] = api_key  # Save the API key for later use
+            st.success("API Key accepted! You may proceed.")
+            st.rerun()  # Rerun to proceed to the main page
+
     # Preview
     #st.markdown("Listen to GoogleLM podCat on CatGPT")
     # Embed audio (e.g., preview.mp3 in your project directory)
@@ -78,6 +79,18 @@ def login_page():
     st.audio(audio_bytes, format='audio/mp3')
 
     st.image('CatImage.png', caption='CatGPT on PodCat', use_column_width=True)  # Local image in project directory
+
+def get_groq_client(api_key=None):
+    try:
+        if api_key:
+            return Groq(api_key=api_key)
+        if TESTING_MODE:
+            return Groq(api_key="meow meow") # Insert API here for testing.
+        else:
+            return Groq(api_key=st.secrets["GROQ_API_KEY"])
+    except KeyError as e:
+        st.error(f"Invalid Groq API key: {e}")
+        st.stop()  # Stop execution if API key is missing
 
 def main_page():
     icon("🐈")
